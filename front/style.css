@@ -1,0 +1,96 @@
+/* front/style.css */
+
+:root {
+    --primary-color: #0d6efd; 
+    --accent-color: #198754;
+    --bg-light: #f8f9fa;
+    --text-dark: #212529;
+}
+
+body {
+    background-color: var(--bg-light);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand i {
+    margin-right: 8px;
+}
+
+.main-container {
+    flex: 1; /* Pousse le footer vers le bas */
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+.search-box {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    max-width: 800px;
+    margin: 0 auto;
+    transition: transform 0.2s;
+}
+
+.search-box:hover {
+    transform: translateY(-2px);
+}
+
+.form-control {
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    font-size: 1.1rem;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: var(--primary-color);
+}
+
+#searchBtn {
+    border-radius: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.result-card {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease-in-out;
+    border-left: 5px solid transparent;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.result-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-left-color: var(--primary-color);
+}
+
+footer {
+    background-color: white !important;
+    border-top: 1px solid #eaeaea;
+}
+
+.object-fit-cover {
+    object-fit: cover; /* Évite de déformer les visages/logos */
+}
+
+.text-light-gray {
+    color: #dee2e6; /* Pour la petite flèche à droite */
+}
+
+.list-group-item:hover .text-light-gray {
+    color: var(--primary-color); /* La flèche s'allume au survol */
+}

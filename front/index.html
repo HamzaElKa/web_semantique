@@ -5,15 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Foot Explorer - Recherche | 4IF-WS</title>
   
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="./static/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
       <a class="navbar-brand" href="index.html">
@@ -31,64 +30,41 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="graph.html">
-              <i class="bi bi-diagram-3"></i> Explorer
+              <i class="bi bi-diagram-3"></i> Mercato
             </a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="similarity.html">
-              <i class="bi bi-stars"></i> Similarité
-            </a>
-          </li>
-          <li class="nav-item">
+          <!-- <li class="nav-item">
             <a class="nav-link" href="ask.html">
               <i class="bi bi-chat-dots"></i> Chat IA
             </a>
-          </li>
+          </li> -->
         </ul>
       </div>
     </div>
   </nav>
 
-  <!-- Main Content -->
   <div class="main-container">
     <div class="container">
-      <!-- Hero Section -->
       <div class="text-center mb-5">
         <h1 class="display-4 fw-bold mb-3">
           <i class="bi bi-search text-primary"></i>
           Explorer le Web Sémantique du Football
         </h1>
         <p class="lead text-muted">
-          Recherchez des joueurs, clubs et stades via DBpedia et Wikidata
+          Recherchez des joueurs, clubs, stades et plus encore !
         </p>
       </div>
 
-      <!-- Search Box -->
       <div class="search-container">
         <div class="search-box">
           <div class="row g-3">
-            <div class="col-md-6">
               <input 
                 type="text" 
                 id="searchQuery" 
                 class="form-control" 
-                placeholder="Ex: Messi, PSG, Camp Nou..."
+                placeholder="Ex: Messi, PSG, Champions League,..."
                 autocomplete="off"
               >
-            </div>
-            <div class="col-md-3">
-              <select id="entityType" class="form-select">
-                <option value="player">Joueur</option>
-                <option value="club">Club</option>
-                <option value="stadium">Stade</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <select id="endpoint" class="form-select">
-                <option value="dbpedia">DBpedia</option>
-                <option value="wikidata">Wikidata</option>
-              </select>
-            </div>
           </div>
           <div class="row mt-3">
             <div class="col">
@@ -100,7 +76,6 @@
         </div>
       </div>
 
-      <!-- Search Info -->
       <div id="searchInfo" class="text-center mb-4" style="display: none;">
         <div class="badge bg-secondary">
           <span id="resultCount">0</span> résultats trouvés
@@ -111,146 +86,60 @@
         </div>
       </div>
 
-      <!-- Results Container -->
       <div id="results" class="results-container"></div>
     </div>
   </div>
+  <div id="featured-section" class="container mt-5">
+    <h3 class="text-center mb-4 fw-light">Retrouver vos préférés sur Foot Explorer</h3>
+    
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom-0 pt-3">
+            <h5 class="card-title text-primary"><i class="bi bi-people-fill"></i> Top Joueurs</h5>
+          </div>
+          <div class="list-group list-group-flush" id="featured-players">
+            <div class="text-center p-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+          </div>
+        </div>
+      </div>
 
-  <!-- Footer -->
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom-0 pt-3">
+            <h5 class="card-title text-success"><i class="bi bi-shield-shaded"></i> Top Clubs</h5>
+          </div>
+          <div class="list-group list-group-flush" id="featured-clubs">
+            <div class="text-center p-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom-0 pt-3">
+            <h5 class="card-title text-warning"><i class="bi bi-trophy-fill"></i> Compétitions</h5>
+          </div>
+          <div class="list-group list-group-flush" id="featured-competitions">
+            <div class="text-center p-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
   <footer class="bg-light py-4 mt-5">
     <div class="container text-center text-muted">
       <p class="mb-0">
         <strong>4IF-WS</strong> - Projet Web Sémantique - INSA Lyon
         <span class="mx-2">•</span>
         <a href="https://dbpedia.org" target="_blank" class="text-decoration-none">DBpedia</a>
-        <span class="mx-2">•</span>
-        <a href="https://www.wikidata.org" target="_blank" class="text-decoration-none">Wikidata</a>
       </p>
     </div>
   </footer>
-
-  <!-- Bootstrap JS -->
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- App JS -->
-  <script src="./static/app.js"></script>
-  
-  <!-- Page Script -->
-  <script>
-    const { api, UI, URLUtils, checkApiHealth } = window.FootExplorer;
+  <script src="script.js"></script>
 
-    // DOM Elements
-    const searchQueryInput = document.getElementById('searchQuery');
-    const entityTypeSelect = document.getElementById('entityType');
-    const endpointSelect = document.getElementById('endpoint');
-    const searchBtn = document.getElementById('searchBtn');
-    const resultsContainer = document.getElementById('results');
-    const searchInfo = document.getElementById('searchInfo');
-    const resultCount = document.getElementById('resultCount');
-    const endpointUsed = document.getElementById('endpointUsed');
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', async () => {
-      await checkApiHealth();
-      
-      // Load params from URL
-      const params = URLUtils.getParams();
-      if (params.q) {
-        searchQueryInput.value = params.q;
-        if (params.type) entityTypeSelect.value = params.type;
-        if (params.endpoint) endpointSelect.value = params.endpoint;
-        performSearch();
-      }
-
-      // Enter key to search
-      searchQueryInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') performSearch();
-      });
-
-      // Search button
-      searchBtn.addEventListener('click', performSearch);
-    });
-
-    async function performSearch() {
-      const query = searchQueryInput.value.trim();
-      
-      if (!query || query.length < 2) {
-        UI.toast('Veuillez saisir au moins 2 caractères', 'warning');
-        return;
-      }
-
-      const entityType = entityTypeSelect.value;
-      const endpoint = endpointSelect.value;
-
-      // Update URL
-      URLUtils.setParams({ q: query, type: entityType, endpoint: endpoint });
-
-      // Show loading
-      UI.showLoading('results');
-      searchInfo.style.display = 'none';
-      searchBtn.disabled = true;
-
-      try {
-        const data = await api.search(query, entityType, endpoint);
-        displayResults(data);
-      } catch (error) {
-        UI.showError('results', 'Impossible de charger les résultats', error.message);
-      } finally {
-        searchBtn.disabled = false;
-      }
-    }
-
-    function displayResults(data) {
-      const results = data.results || [];
-
-      if (results.length === 0) {
-        UI.showEmpty('results', 'Aucun résultat', 'Essayez avec un autre terme ou source de données');
-        return;
-      }
-
-      // Update info
-      resultCount.textContent = results.length;
-      endpointUsed.textContent = data.meta.endpoint === 'dbpedia' ? 'DBpedia' : 'Wikidata';
-      searchInfo.style.display = 'block';
-
-      // Render results
-      resultsContainer.innerHTML = results.map(item => `
-        <div class="result-item" onclick="window.location.href='${URLUtils.buildEntityUrl(item.uri)}'">
-          <h5>
-            <i class="bi bi-${getIcon(item.type)}"></i>
-            ${UI.escapeHtml(item.label)}
-          </h5>
-          ${item.description ? `<p>${UI.truncate(UI.escapeHtml(item.description))}</p>` : ''}
-          <div class="uri">${UI.escapeHtml(item.uri)}</div>
-          <div class="mt-2">
-            <span class="badge bg-primary">${getTypeLabel(item.type)}</span>
-            <a href="${URLUtils.buildGraphUrl(item.uri)}" 
-               class="badge bg-success ms-2" 
-               onclick="event.stopPropagation()">
-              <i class="bi bi-diagram-3"></i> Graphe
-            </a>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function getIcon(type) {
-      const icons = {
-        player: 'person-fill',
-        club: 'building',
-        stadium: 'geo-alt-fill'
-      };
-      return icons[type] || 'star';
-    }
-
-    function getTypeLabel(type) {
-      const labels = {
-        player: 'Joueur',
-        club: 'Club',
-        stadium: 'Stade'
-      };
-      return labels[type] || type;
-    }
-  </script>
 </body>
 </html>
