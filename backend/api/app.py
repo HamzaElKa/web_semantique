@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api.routes_dbpedia_foot import router as dbpedia_foot_router
+
 
 from api.config import settings
 from api.routes_search import router as search_router
@@ -45,6 +47,8 @@ def create_app() -> FastAPI:
     app.include_router(similarity_router)
     app.include_router(ask_router)
     app.include_router(dbpedia_router)
+    app.include_router(dbpedia_foot_router)
+
 
     @app.get("/", tags=["meta"])
     async def root():
