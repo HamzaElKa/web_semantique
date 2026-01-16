@@ -237,3 +237,4 @@ if __name__ == "__main__":
     comps = service.get_top_competitions()
     for c in comps:
         print(f" > {c['nom']}")
+dbpedia_service = DBpediaService()
