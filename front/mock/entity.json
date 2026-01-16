@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "endpoint": "dbpedia",
+    "limit": 50,
+    "cached": false
+  },
+  "uri": "http://dbpedia.org/resource/Lionel_Messi",
+  "label": "Lionel Messi",
+  "facts": {
+    "rdfs:label": [
+      { "value": "Lionel Messi", "label": "Lionel Messi" }
+    ],
+    "dbo:birthDate": [
+      { "value": "1987-06-24", "label": "1987-06-24" }
+    ],
+    "dbo:birthPlace": [
+      { "value": "http://dbpedia.org/resource/Rosario,_Santa_Fe", "label": "Rosario, Santa Fe" }
+    ],
+    "dbo:nationality": [
+      { "value": "http://dbpedia.org/resource/Argentina", "label": "Argentina" }
+    ],
+    "dbo:position": [
+      { "value": "Forward", "label": "Forward" }
+    ],
+    "dbo:currentTeam": [
+      { "value": "http://dbpedia.org/resource/Inter_Miami_CF", "label": "Inter Miami CF" }
+    ],
+    "dbo:height": [
+      { "value": "1.70", "label": "1.70 m" }
+    ],
+    "rdfs:comment": [
+      {
+        "value": "Lionel Andrés Messi, also known as Leo Messi, is an Argentine professional footballer who plays as a forward for Major League Soccer club Inter Miami and captains both the Argentina national team and Inter Miami. Often considered the best player in the world and widely regarded as one of the greatest players of all time.",
+        "label": "Description"
+      }
+    ]
+  },
+  "neighbors": [
+    {
+      "predicate": "dbo:team",
+      "uri": "http://dbpedia.org/resource/FC_Barcelona",
+      "label": "FC Barcelona"
+    },
+    {
+      "predicate": "dbo:team",
+      "uri": "http://dbpedia.org/resource/Paris_Saint-Germain_F.C.",
+      "label": "Paris Saint-Germain"
+    },
+    {
+      "predicate": "dbo:team",
+      "uri": "http://dbpedia.org/resource/Inter_Miami_CF",
+      "label": "Inter Miami CF"
+    },
+    {
+      "predicate": "dbo:nationalTeam",
+      "uri": "http://dbpedia.org/resource/Argentina_national_football_team",
+      "label": "Argentina national football team"
+    },
+    {
+      "predicate": "dbo:award",
+      "uri": "http://dbpedia.org/resource/Ballon_d'Or",
+      "label": "Ballon d'Or"
+    },
+    {
+      "predicate": "dbo:spouse",
+      "uri": "http://dbpedia.org/resource/Antonela_Roccuzzo",
+      "label": "Antonela Roccuzzo"
+    }
+  ]
+}

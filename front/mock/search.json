@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "endpoint": "dbpedia",
+    "limit": 50,
+    "cached": false
+  },
+  "query": "messi",
+  "entity_type": "player",
+  "results": [
+    {
+      "uri": "http://dbpedia.org/resource/Lionel_Messi",
+      "label": "Lionel Messi",
+      "description": "Argentine professional footballer who plays as a forward for Ligue 1 club Paris Saint-Germain and captains the Argentina national team.",
+      "type": "player"
+    },
+    {
+      "uri": "http://dbpedia.org/resource/Cristiano_Ronaldo",
+      "label": "Cristiano Ronaldo",
+      "description": "Portuguese professional footballer who plays as a forward for Saudi Professional League club Al Nassr and captains the Portugal national team.",
+      "type": "player"
+    },
+    {
+      "uri": "http://dbpedia.org/resource/Kylian_Mbappé",
+      "label": "Kylian Mbappé",
+      "description": "French professional footballer who plays as a forward for Real Madrid and the France national team.",
+      "type": "player"
+    }
+  ]
+}

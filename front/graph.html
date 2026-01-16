@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graphe - Foot Explorer | 4IF-WS</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  
+  <!-- Cytoscape.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./static/style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">
+        <i class="bi bi-globe"></i> Foot Explorer
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">
+              <i class="bi bi-search"></i> Recherche
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="graph.html">
+              <i class="bi bi-diagram-3"></i> Explorer
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="similarity.html">
+              <i class="bi bi-stars"></i> Similarité
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="ask.html">
+              <i class="bi bi-chat-dots"></i> Chat IA
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-container">
+    <div class="container">
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h1 class="display-5 fw-bold">
+          <i class="bi bi-diagram-3 text-primary"></i>
+          Exploration du Graphe
+        </h1>
+        <p class="lead text-muted">Visualisation des relations sémantiques</p>
+      </div>
+
+      <!-- Search Box -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+              <label for="seedUri" class="form-label fw-bold">URI de départ</label>
+              <input 
+                type="text" 
+                id="seedUri" 
+                class="form-control" 
+                placeholder="http://dbpedia.org/resource/Lionel_Messi"
+              >
+            </div>
+            <div class="col-md-2">
+              <label for="depth" class="form-label fw-bold">Profondeur</label>
+              <select id="depth" class="form-select">
+                <option value="1">1 hop</option>
+                <option value="2">2 hops</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="endpoint" class="form-label fw-bold">Source</label>
+              <select id="endpoint" class="form-select">
+                <option value="dbpedia">DBpedia</option>
+                <option value="wikidata">Wikidata</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button id="loadGraphBtn" class="btn btn-primary w-100">
+                <i class="bi bi-arrow-clockwise"></i> Charger le graphe
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div id="graphStats" class="graph-stats" style="display: none;">
+        <div class="stat-box">
+          <div class="label">Nœuds</div>
+          <div class="value" id="nodeCount">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Arêtes</div>
+          <div class="value" id="edgeCount">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Source</div>
+          <div class="value" id="sourceLabel" style="font-size: 1.2rem;">-</div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div id="graphControls" class="graph-controls" style="display: none;">
+        <div class="btn-group" role="group">
+          <button id="showVisualBtn" class="btn btn-success active">
+            <i class="bi bi-eye"></i> Visualisation
+          </button>
+          <button id="showTableBtn" class="btn btn-outline-success">
+            <i class="bi bi-table"></i> Tableau
+          </button>
+        </div>
+        <button id="resetZoomBtn" class="btn btn-outline-secondary ms-2">
+          <i class="bi bi-arrows-angle-expand"></i> Recentrer
+        </button>
+        <button id="exportBtn" class="btn btn-outline-info ms-2">
+          <i class="bi bi-download"></i> Export JSON
+        </button>
+      </div>
+
+      <!-- Cytoscape Container -->
+      <div id="cyContainer" style="display: none;">
+        <div id="cy"></div>
+        <div class="alert alert-info mt-3">
+          <i class="bi bi-info-circle"></i>
+          <strong>Navigation :</strong> 
+          Cliquez sur un nœud pour le sélectionner • 
+          Molette pour zoom • 
+          Glisser pour déplacer
+        </div>
+      </div>
+
+      <!-- Table Container -->
+      <div id="tableContainer" style="display: none;">
+        <!-- Nodes Table -->
+        <div class="card mb-3">
+          <div class="card-header">
+            <i class="bi bi-circle-fill text-primary"></i> Nœuds
+          </div>
+          <div class="card-body data-table">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Label</th>
+                    <th>URI</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="nodesTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edges Table -->
+        <div class="card">
+          <div class="card-header">
+            <i class="bi bi-arrow-left-right text-success"></i> Arêtes (Relations)
+          </div>
+          <div class="card-body data-table">
+            <div class="table-responsive">
+              <table class="table table-hover table-sm">
+                <thead>
+                  <tr>
+                    <th>Source</th>
+                    <th>Relation</th>
+                    <th>Cible</th>
+                  </tr>
+                </thead>
+                <tbody id="edgesTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loadingContainer">
+        <div class="empty-state">
+          <i class="bi bi-diagram-3" style="font-size: 5rem; opacity: 0.2;"></i>
+          <h3>Explorez le graphe sémantique</h3>
+          <p>Entrez une URI ou recherchez une entité pour visualiser ses relations</p>
+          <a href="index.html" class="btn btn-primary mt-3">
+            <i class="bi bi-search"></i> Rechercher une entité
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-light py-4 mt-5">
+    <div class="container text-center text-muted">
+      <p class="mb-0">
+        <strong>4IF-WS</strong> - Projet Web Sémantique - INSA Lyon
+      </p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- App JS -->
+  <script src="./static/app.js"></script>
+  
+  <!-- Page Script -->
+  <script>
+    const { api, UI, URLUtils, checkApiHealth } = window.FootExplorer;
+
+    let currentGraphData = null;
+    let cy = null;
+
+    // DOM Elements
+    const seedUriInput = document.getElementById('seedUri');
+    const depthSelect = document.getElementById('depth');
+    const endpointSelect = document.getElementById('endpoint');
+    const loadGraphBtn = document.getElementById('loadGraphBtn');
+    
+    const graphStats = document.getElementById('graphStats');
+    const graphControls = document.getElementById('graphControls');
+    const cyContainer = document.getElementById('cyContainer');
+    const tableContainer = document.getElementById('tableContainer');
+    const loadingContainer = document.getElementById('loadingContainer');
+    
+    const nodeCount = document.getElementById('nodeCount');
+    const edgeCount = document.getElementById('edgeCount');
+    const sourceLabel = document.getElementById('sourceLabel');
+    
+    const showVisualBtn = document.getElementById('showVisualBtn');
+    const showTableBtn = document.getElementById('showTableBtn');
+    const resetZoomBtn = document.getElementById('resetZoomBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    
+    const nodesTableBody = document.getElementById('nodesTableBody');
+    const edgesTableBody = document.getElementById('edgesTableBody');
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', async () => {
+      await checkApiHealth();
+      
+      // Load from URL params
+      const seed = URLUtils.getParam('seed');
+      if (seed) {
+        seedUriInput.value = seed;
+        const depth = URLUtils.getParam('depth', '1');
+        const endpoint = URLUtils.getParam('endpoint', 'dbpedia');
+        depthSelect.value = depth;
+        endpointSelect.value = endpoint;
+        loadGraph();
+      }
+
+      // Event listeners
+      loadGraphBtn.addEventListener('click', loadGraph);
+      showVisualBtn.addEventListener('click', () => showView('visual'));
+      showTableBtn.addEventListener('click', () => showView('table'));
+      resetZoomBtn.addEventListener('click', resetZoom);
+      exportBtn.addEventListener('click', exportGraph);
+
+      seedUriInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') loadGraph();
+      });
+    });
+
+    async function loadGraph() {
+      const seed = seedUriInput.value.trim();
+      
+      if (!seed) {
+        UI.toast('Veuillez entrer une URI', 'warning');
+        return;
+      }
+
+      const depth = parseInt(depthSelect.value);
+      const endpoint = endpointSelect.value;
+
+      // Update URL
+      URLUtils.setParams({ seed, depth, endpoint });
+
+      // Show loading
+      loadingContainer.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-3 text-muted">Chargement du graphe...</p>
+        </div>
+      `;
+      graphStats.style.display = 'none';
+      graphControls.style.display = 'none';
+      cyContainer.style.display = 'none';
+      tableContainer.style.display = 'none';
+      loadGraphBtn.disabled = true;
+
+      try {
+        const data = await api.getGraph(seed, depth, endpoint);
+        currentGraphData = data;
+        displayGraph(data);
+      } catch (error) {
+        loadingContainer.innerHTML = `
+          <div class="alert alert-danger">
+            <strong>Erreur de chargement</strong><br>
+            ${UI.escapeHtml(error.message)}
+          </div>
+        `;
+      } finally {
+        loadGraphBtn.disabled = false;
+      }
+    }
+
+    function displayGraph(data) {
+      const nodes = data.nodes || [];
+      const edges = data.edges || [];
+
+      if (nodes.length === 0) {
+        loadingContainer.innerHTML = `
+          <div class="empty-state">
+            <h3>Aucun nœud trouvé</h3>
+            <p>Essayez avec une autre URI ou source</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Hide loading
+      loadingContainer.style.display = 'none';
+
+      // Show stats
+      nodeCount.textContent = nodes.length;
+      edgeCount.textContent = edges.length;
+      sourceLabel.textContent = nodes[0]?.label || 'Entité';
+      graphStats.style.display = 'flex';
+      graphControls.style.display = 'block';
+
+      // Display visualization
+      showView('visual');
+    }
+
+    function showView(view) {
+      if (view === 'visual') {
+        cyContainer.style.display = 'block';
+        tableContainer.style.display = 'none';
+        showVisualBtn.classList.add('active');
+        showVisualBtn.classList.remove('btn-outline-success');
+        showVisualBtn.classList.add('btn-success');
+        showTableBtn.classList.remove('active');
+        showTableBtn.classList.add('btn-outline-success');
+        showTableBtn.classList.remove('btn-success');
+        
+        renderCytoscape();
+      } else {
+        cyContainer.style.display = 'none';
+        tableContainer.style.display = 'block';
+        showTableBtn.classList.add('active');
+        showTableBtn.classList.remove('btn-outline-success');
+        showTableBtn.classList.add('btn-success');
+        showVisualBtn.classList.remove('active');
+        showVisualBtn.classList.add('btn-outline-success');
+        showVisualBtn.classList.remove('btn-success');
+        
+        renderTable();
+      }
+    }
+
+    function renderCytoscape() {
+      if (!currentGraphData) return;
+
+      const nodes = currentGraphData.nodes || [];
+      const edges = currentGraphData.edges || [];
+
+      // Prepare Cytoscape elements
+      const cyNodes = nodes.map(node => ({
+        data: {
+          id: node.id,
+          label: node.label || UI.extractLabel(node.id)
+        }
+      }));
+
+      const cyEdges = edges.map((edge, idx) => ({
+        data: {
+          id: `e${idx}`,
+          source: edge.source,
+          target: edge.target,
+          label: edge.label || ''
+        }
+      }));
+
+      // Initialize Cytoscape
+      cy = cytoscape({
+        container: document.getElementById('cy'),
+        
+        elements: [...cyNodes, ...cyEdges],
+        
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'background-color': '#0066cc',
+              'label': 'data(label)',
+              'color': '#333',
+              'text-wrap': 'wrap',
+              'text-max-width': '100px',
+              'font-size': '10px',
+              'text-valign': 'center',
+              'text-halign': 'center',
+              'width': 30,
+              'height': 30
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'width': 2,
+              'line-color': '#ccc',
+              'target-arrow-color': '#ccc',
+              'target-arrow-shape': 'triangle',
+              'curve-style': 'bezier',
+              'label': 'data(label)',
+              'font-size': '8px',
+              'text-rotation': 'autorotate',
+              'text-margin-y': -10
+            }
+          },
+          {
+            selector: 'node:selected',
+            style: {
+              'background-color': '#28a745',
+              'border-width': 3,
+              'border-color': '#1e7e34'
+            }
+          }
+        ],
+        
+        layout: {
+          name: 'cose',
+          idealEdgeLength: 100,
+          nodeOverlap: 20,
+          refresh: 20,
+          fit: true,
+          padding: 30,
+          randomize: false,
+          componentSpacing: 100,
+          nodeRepulsion: 400000,
+          edgeElasticity: 100,
+          nestingFactor: 5,
+          gravity: 80,
+          numIter: 1000,
+          initialTemp: 200,
+          coolingFactor: 0.95,
+          minTemp: 1.0
+        }
+      });
+
+      // Click handler
+      cy.on('tap', 'node', function(evt) {
+        const node = evt.target;
+        const uri = node.data('id');
+        const label = node.data('label');
+        
+        if (confirm(`Ouvrir l'entité "${label}" ?`)) {
+          window.location.href = URLUtils.buildEntityUrl(uri);
+        }
+      });
+    }
+
+    function renderTable() {
+      if (!currentGraphData) return;
+
+      const nodes = currentGraphData.nodes || [];
+      const edges = currentGraphData.edges || [];
+
+      // Nodes table
+      nodesTableBody.innerHTML = nodes.map(node => `
+        <tr>
+          <td><strong>${UI.escapeHtml(node.label || UI.extractLabel(node.id))}</strong></td>
+          <td class="text-muted" style="font-size: 0.85rem; font-family: monospace;">
+            ${UI.truncate(node.id, 80)}
+          </td>
+          <td>
+            <a href="${URLUtils.buildEntityUrl(node.id)}" class="btn btn-sm btn-primary">
+              <i class="bi bi-box-arrow-up-right"></i> Voir
+            </a>
+          </td>
+        </tr>
+      `).join('');
+
+      // Edges table
+      edgesTableBody.innerHTML = edges.map(edge => {
+        const sourceLabel = nodes.find(n => n.id === edge.source)?.label || UI.extractLabel(edge.source);
+        const targetLabel = nodes.find(n => n.id === edge.target)?.label || UI.extractLabel(edge.target);
+        
+        return `
+          <tr>
+            <td>${UI.escapeHtml(sourceLabel)}</td>
+            <td class="text-center">
+              <span class="badge bg-secondary">${UI.escapeHtml(edge.label || '?')}</span>
+            </td>
+            <td>${UI.escapeHtml(targetLabel)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function resetZoom() {
+      if (cy) {
+        cy.fit();
+        cy.center();
+        UI.toast('Graphe recentré', 'success');
+      }
+    }
+
+    function exportGraph() {
+      if (!currentGraphData) return;
+      
+      const dataStr = JSON.stringify(currentGraphData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `graph_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      UI.toast('Graphe exporté', 'success');
+    }
+  </script>
+</body>
+</html>

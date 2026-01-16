@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "endpoint": "dbpedia",
+    "limit": 20,
+    "cached": false
+  },
+  "entity_type": "player",
+  "uri": "http://dbpedia.org/resource/Lionel_Messi",
+  "similar": [
+    {
+      "uri": "http://dbpedia.org/resource/Cristiano_Ronaldo",
+      "label": "Cristiano Ronaldo",
+      "score": 0.92,
+      "explanation": "Nationalité différente, poste similaire (Forward), clubs de haut niveau (Real Madrid, Juventus), multiple Ballon d'Or"
+    },
+    {
+      "uri": "http://dbpedia.org/resource/Neymar",
+      "label": "Neymar",
+      "score": 0.85,
+      "explanation": "Coéquipier au FC Barcelona et PSG, poste similaire, nationalité sud-américaine"
+    },
+    {
+      "uri": "http://dbpedia.org/resource/Kylian_Mbappé",
+      "label": "Kylian Mbappé",
+      "score": 0.78,
+      "explanation": "Coéquipier au PSG, poste Forward, palmarès international similaire"
+    },
+    {
+      "uri": "http://dbpedia.org/resource/Luis_Suárez",
+      "label": "Luis Suárez",
+      "score": 0.75,
+      "explanation": "Coéquipier au FC Barcelona, même ligue sud-américaine d'origine, poste Forward"
+    },
+    {
+      "uri": "http://dbpedia.org/resource/Sergio_Agüero",
+      "label": "Sergio Agüero",
+      "score": 0.68,
+      "explanation": "Nationalité argentine commune, ami proche, poste Forward, parcours en Liga"
+    }
+  ]
+}
