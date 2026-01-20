@@ -58,14 +58,25 @@
       <div class="search-container">
         <div class="search-box">
           <div class="row g-3">
-              <input 
-                type="text" 
-                id="searchQuery" 
-                class="form-control" 
-                placeholder="Ex: Messi, PSG, Champions League,..."
-                autocomplete="off"
-              >
-          </div>
+  <div class="col-md-8">
+    <input 
+      type="text" 
+      id="searchQuery" 
+      class="form-control" 
+      placeholder="Ex: Messi, PSG, Champions League,..."
+      autocomplete="off"
+    >
+  </div>
+
+  <div class="col-md-4">
+    <select id="searchType" class="form-select form-control">
+      <option value="player" selected>Joueurs</option>
+      <option value="club">Clubs</option>
+      <option value="competition">Compétitions</option>
+      <option value="">Tout</option>
+    </select>
+  </div>
+</div>
           <div class="row mt-3">
             <div class="col">
               <button id="searchBtn" class="btn btn-primary btn-lg w-100">
@@ -125,6 +136,43 @@
           </div>
         </div>
       </div>
+    
+    <div id="analytics-section" class="container mt-5">
+  <h3 class="text-center mb-4 fw-light">Analytics (DBpedia)</h3>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom-0 pt-3">
+          <h5 class="card-title text-primary">
+            <i class="bi bi-bar-chart-fill"></i> Clubs les plus centraux
+          </h5>
+        </div>
+        <div class="list-group list-group-flush" id="analytics-club-degree">
+          <div class="text-center p-3">
+            <div class="spinner-border spinner-border-sm text-secondary"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom-0 pt-3">
+          <h5 class="card-title text-success">
+            <i class="bi bi-shuffle"></i> Joueurs les plus “mobiles”
+          </h5>
+        </div>
+        <div class="list-group list-group-flush" id="analytics-player-mobility">
+          <div class="text-center p-3">
+            <div class="spinner-border spinner-border-sm text-secondary"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
     </div>
 </div>
 

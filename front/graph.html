@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Graphe - Foot Explorer | 4IF-WS</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-  
-  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
@@ -43,7 +41,141 @@
     </div>
   </nav>
 
-  <div class="main-container"></div>
+  <main class="main-container">
+    <div class="container py-4">
+
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="mb-0">
+          <i class="bi bi-diagram-3"></i> Graphe (Mercato)
+        </h2>
+        <a class="btn btn-outline-secondary btn-sm" href="index.html">
+          <i class="bi bi-arrow-left"></i> Retour
+        </a>
+      </div>
+
+      <!-- INSIGHTS -->
+      <div class="row g-3 mb-3" id="insightsRow" style="display:none;">
+        <div class="col-lg-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-lightning-charge"></i> Top Hubs (degré)
+              </div>
+              <div id="insight-degree" class="small"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-bullseye"></i> Top Influence (PageRank)
+              </div>
+              <div id="insight-pagerank" class="small"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-diagram-2"></i> Top Ponts (betweenness)
+              </div>
+              <div id="insight-betweenness" class="small"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-lg-7">
+              <label class="form-label mb-1">Seed URI (DBpedia)</label>
+              <input
+                id="seedInput"
+                class="form-control"
+                value="http://dbpedia.org/resource/Lionel_Messi"
+              />
+              <div class="form-text">
+                Astuce : double-clic sur un nœud pour le prendre comme seed.
+              </div>
+            </div>
+
+            <div class="col-lg-2">
+              <label class="form-label mb-1">Profondeur</label>
+              <select id="depthSelect" class="form-select">
+                <option value="1" selected>1 hop</option>
+                <option value="2">2 hops</option>
+              </select>
+            </div>
+
+            <div class="col-lg-3">
+              <div class="d-grid gap-2">
+                <button id="loadGraphBtn" class="btn btn-primary">
+                  <i class="bi bi-play-fill"></i> Charger
+                </button>
+                <button id="explainBtn" class="btn btn-outline-primary">
+                  <i class="bi bi-magic"></i> Interpréter
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="small text-muted mt-2" id="graphStatus"></div>
+        </div>
+      </div>
+
+      <!-- EXPLANATION (pretty) -->
+      <div class="card border-0 shadow-sm mb-3" id="explainCard" style="display:none;">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div>
+              <div class="fw-semibold" id="explainTitle">Interprétation</div>
+              <div class="text-muted small mt-1" id="explainSummary"></div>
+            </div>
+            <span class="badge text-bg-secondary align-self-start" id="explainProvider"></span>
+          </div>
+
+          <hr class="my-3" />
+
+          <div class="row g-3">
+            <div class="col-lg-6">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-graph-up"></i> Ce que ça révèle
+              </div>
+              <ul class="mb-0" id="explainInsights"></ul>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-exclamation-triangle"></i> Limites
+              </div>
+              <ul class="mb-0" id="explainLimits"></ul>
+            </div>
+
+            <div class="col-12">
+              <div class="fw-semibold mb-2">
+                <i class="bi bi-compass"></i> Prochaines étapes
+              </div>
+              <div class="d-flex flex-wrap gap-2" id="explainNextSteps"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRAPH -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <div id="cy" style="height: 75vh; width: 100%;"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
 
   <footer class="bg-light py-4 mt-5">
     <div class="container text-center text-muted">
@@ -53,8 +185,8 @@
     </div>
   </footer>
 
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+  <script src="graph.js"></script>
 </body>
 </html>
