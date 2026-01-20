@@ -10,7 +10,7 @@ from fastapi import HTTPException
 from api.config import settings
 from services.cache import TTLCache
 
-EndpointName = Literal["dbpedia", "wikidata"]
+EndpointName = Literal["dbpedia", "wikidata","hal"]
 
 
 class SparqlClient:
@@ -30,7 +30,10 @@ class SparqlClient:
             return settings.DBPEDIA_ENDPOINT
         if endpoint == "wikidata":
             return settings.WIKIDATA_ENDPOINT
+        if endpoint == "hal":
+            return settings.HAL_ENDPOINT
         raise ValueError("Unknown endpoint")
+
 
     def _enforce_limit(self, query: str, limit: int) -> str:
         # If query already has LIMIT, keep it as-is. Otherwise append LIMIT.

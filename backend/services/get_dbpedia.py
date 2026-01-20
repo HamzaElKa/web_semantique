@@ -219,6 +219,123 @@ class DBpediaService:
                 "image": item.get("image", {}).get("value", "https://via.placeholder.com/150")
             })
         return comps
+
+    def analytics_club_degree(self, lang: str = "fr", limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Top clubs par degré = nombre de joueurs liés via dbo:team
+        """
+        lang = _normalize_lang(lang)
+        query = f"""
+        PREFIX dbo: <http://dbpedia.org/ontology/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+        SELECT ?club ?clubLabel (COUNT(DISTINCT ?player) AS ?nbPlayers) (SAMPLE(?img) AS ?image) WHERE {{
+          ?player a dbo:SoccerPlayer ;
+                  dbo:team ?club .
+
+          OPTIONAL {{
+            ?club rdfs:label ?clubLabel .
+            FILTER(lang(?clubLabel) = '{lang}')
+          }}
+          OPTIONAL {{ ?club dbo:thumbnail ?img }}
+        }}
+        GROUP BY ?club ?clubLabel
+        ORDER BY DESC(?nbPlayers)
+        LIMIT {int(limit)}
+        """.strip()
+
+        bindings = self._run(query)
+        out = []
+        for b in bindings:
+            out.append({
+                "club_uri": b.get("club", {}).get("value"),
+                "club": b.get("clubLabel", {}).get("value") or b.get("club", {}).get("value"),
+                "nbPlayers": int(float(b.get("nbPlayers", {}).get("value", "0"))),
+                "image": b.get("image", {}).get("value", None),
+            })
+        return out
+
+    def analytics_player_mobility(self, lang: str = "fr", limit: int = 10, min_clubs: int = 2) -> List[Dict[str, Any]]:
+        """
+        Joueurs 'mobiles' = nombre de clubs distincts > min_clubs-1
+        """
+        lang = _normalize_lang(lang)
+        query = f"""
+        PREFIX dbo: <http://dbpedia.org/ontology/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+        SELECT ?player ?playerLabel (COUNT(DISTINCT ?club) AS ?nbClubs) (SAMPLE(?img) AS ?image) WHERE {{
+          ?player a dbo:SoccerPlayer ;
+                  dbo:team ?club .
+
+          OPTIONAL {{
+            ?player rdfs:label ?playerLabel .
+            FILTER(lang(?playerLabel) = '{lang}')
+          }}
+          OPTIONAL {{ ?player dbo:thumbnail ?img }}
+        }}
+        GROUP BY ?player ?playerLabel
+        HAVING (COUNT(DISTINCT ?club) >= {int(min_clubs)})
+        ORDER BY DESC(?nbClubs)
+        LIMIT {int(limit)}
+        """.strip()
+
+        bindings = self._run(query)
+        out = []
+        for b in bindings:
+            out.append({
+                "player_uri": b.get("player", {}).get("value"),
+                "player": b.get("playerLabel", {}).get("value") or b.get("player", {}).get("value"),
+                "nbClubs": int(float(b.get("nbClubs", {}).get("value", "0"))),
+                "image": b.get("image", {}).get("value", None),
+            })
+        return out
+
+    def analytics_players_clubs_edges(self, lang: str = "fr", limit_edges: int = 500) -> Dict[str, Any]:
+        """
+        Donne un sous-graphe joueur->club (arêtes + nodes), pour Gephi / vis.js.
+        """
+        lang = _normalize_lang(lang)
+
+        query = f"""
+        PREFIX dbo: <http://dbpedia.org/ontology/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+        SELECT ?player ?playerLabel ?club ?clubLabel WHERE {{
+          ?player a dbo:SoccerPlayer ;
+                  dbo:team ?club .
+
+          OPTIONAL {{ ?player rdfs:label ?playerLabel . FILTER(lang(?playerLabel) = '{lang}') }}
+          OPTIONAL {{ ?club rdfs:label ?clubLabel . FILTER(lang(?clubLabel) = '{lang}') }}
+        }}
+        LIMIT {int(limit_edges)}
+        """.strip()
+
+        rows = self._run(query)
+
+        nodes = {}  # uri -> {id,label,type}
+        edges = []
+
+        def add_node(uri: str, label: str, ntype: str):
+            if not uri:
+                return
+            if uri not in nodes:
+                nodes[uri] = {"id": uri, "label": label or uri, "type": ntype}
+
+        for b in rows:
+            p_uri = b.get("player", {}).get("value")
+            c_uri = b.get("club", {}).get("value")
+            p_label = b.get("playerLabel", {}).get("value") or p_uri
+            c_label = b.get("clubLabel", {}).get("value") or c_uri
+            if not p_uri or not c_uri:
+                continue
+
+            add_node(p_uri, p_label, "player")
+            add_node(c_uri, c_label, "club")
+            edges.append({"source": p_uri, "target": c_uri, "label": "team"})
+
+        return {"nodes": list(nodes.values()), "edges": edges}
+    
 # --- TEST ---
 if __name__ == "__main__":
     service = DBpediaService()

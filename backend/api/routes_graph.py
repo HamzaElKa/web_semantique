@@ -8,9 +8,14 @@ from api.config import settings
 from api.deps import get_sparql_client
 from services.sparql_client import SparqlClient
 from services.normalize import sparql_json_to_rows
+import networkx as nx
+
 
 router = APIRouter(prefix="/graph", tags=["graph"])
-
+try:
+    import community as community_louvain  # python-louvain
+except Exception:
+    community_louvain = None
 
 def _validate_uri(u: str) -> str:
     u = (u or "").strip()
@@ -33,16 +38,44 @@ async def graph(
     endpoint: EndpointName = Query(settings.DEFAULT_ENDPOINT),
     limit: int = Query(80, ge=1, le=settings.MAX_LIMIT),
     sparql: SparqlClient = Depends(get_sparql_client),
+    mode: str = Query("generic", description="generic | foot"),
+
 ):
     seed_uri = _validate_uri(seed)
+    # Foot-only filter (DBpedia predicates only)
+    foot_filter = ""
+    if mode.lower() == "foot" and endpoint == "dbpedia":
+        foot_filter = """
+    FILTER (?p IN (
+        <http://dbpedia.org/ontology/team>,
+        <http://dbpedia.org/ontology/club>,
+        <http://dbpedia.org/ontology/currentTeam>,
+        <http://dbpedia.org/ontology/nationalteam>,
+        <http://dbpedia.org/ontology/position>,
+        <http://dbpedia.org/ontology/league>,
+        <http://dbpedia.org/ontology/ground>,
+        <http://dbpedia.org/ontology/manager>,
+        <http://dbpedia.org/ontology/award>,
+        <http://dbpedia.org/ontology/birthPlace>
+    ))
+    """.rstrip()
+
 
     # 1-hop query
     query_1 = f"""
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT ?s ?sLabel ?p ?pLabel ?o ?oLabel WHERE {{
+SELECT
+  ?s
+  (SAMPLE(?sLabel) AS ?sLabel)
+  ?p
+  (SAMPLE(?pLabel) AS ?pLabel)
+  ?o
+  (SAMPLE(?oLabel) AS ?oLabel)
+WHERE {{
   BIND(<{seed_uri}> AS ?s)
   ?s ?p ?o .
+  {foot_filter}
 
   FILTER(isIRI(?o))
 
@@ -50,7 +83,11 @@ SELECT ?s ?sLabel ?p ?pLabel ?o ?oLabel WHERE {{
   OPTIONAL {{ ?p rdfs:label ?pLabel . FILTER(lang(?pLabel) IN ("en","fr")) }}
   OPTIONAL {{ ?o rdfs:label ?oLabel . FILTER(lang(?oLabel) IN ("en","fr")) }}
 }}
+GROUP BY ?s ?p ?o
+LIMIT {limit}
 """.strip()
+
+
 
     data1 = await sparql.query(query=query_1, endpoint=endpoint, limit=limit, use_cache=True)
     rows1 = sparql_json_to_rows(data1)
@@ -83,25 +120,38 @@ SELECT ?s ?sLabel ?p ?pLabel ?o ?oLabel WHERE {{
         # (and keep within demo constraints)
         max_targets = 15
         targets = one_hop_targets[:max_targets]
-
+        limit2 = min(200, settings.MAX_LIMIT)
         values = " ".join(f"<{t}>" for t in targets)
 
         query_2 = f"""
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT ?s ?sLabel ?p ?pLabel ?o ?oLabel WHERE {{
+SELECT
+  ?s
+  (SAMPLE(?sLabel) AS ?sLabel)
+  ?p
+  (SAMPLE(?pLabel) AS ?pLabel)
+  ?o
+  (SAMPLE(?oLabel) AS ?oLabel)
+WHERE {{
   VALUES ?s {{ {values} }}
   ?s ?p ?o .
+  {foot_filter}
+
   FILTER(isIRI(?o))
 
   OPTIONAL {{ ?s rdfs:label ?sLabel . FILTER(lang(?sLabel) IN ("en","fr")) }}
   OPTIONAL {{ ?p rdfs:label ?pLabel . FILTER(lang(?pLabel) IN ("en","fr")) }}
   OPTIONAL {{ ?o rdfs:label ?oLabel . FILTER(lang(?oLabel) IN ("en","fr")) }}
 }}
+GROUP BY ?s ?p ?o
+LIMIT {limit2}
 """.strip()
 
+
+
         # Use a smaller limit for 2-hop to avoid huge payload
-        limit2 = min(200, settings.MAX_LIMIT)
+        
         data2 = await sparql.query(query=query_2, endpoint=endpoint, limit=limit2, use_cache=True)
         rows2 = sparql_json_to_rows(data2)
 
@@ -130,3 +180,64 @@ SELECT ?s ?sLabel ?p ?pLabel ?o ?oLabel WHERE {{
         nodes=list(nodes_map.values()),
         edges=edges,
     )
+
+
+
+@router.get("/metrics")
+async def graph_metrics(
+    seed: str = Query(...),
+    depth: int = Query(1, ge=1, le=2),
+    endpoint: EndpointName = Query(settings.DEFAULT_ENDPOINT),
+    limit: int = Query(80, ge=1, le=settings.MAX_LIMIT),
+    sparql: SparqlClient = Depends(get_sparql_client),
+):
+    # 1) réutiliser ton graph existant en mode foot
+    g = await graph(seed=seed, depth=depth, endpoint=endpoint, limit=limit, sparql=sparql, mode="foot")
+
+    nodes = g.nodes
+    edges = g.edges
+
+    # 2) construire un graphe NetworkX (non orienté pour centralités de structure)
+    G = nx.Graph()
+    for n in nodes:
+        G.add_node(n["id"], label=n.get("label") or n["id"])
+    for e in edges:
+        G.add_edge(e["source"], e["target"], label=e.get("label") or "")
+
+    if G.number_of_nodes() == 0:
+        return {"seed_uri": seed, "n_nodes": 0, "n_edges": 0}
+
+    # 3) métriques
+    degree = dict(G.degree())
+    
+    pagerank = nx.pagerank(G, alpha=0.85) if G.number_of_nodes() <= 500 else {}
+    betweenness = nx.betweenness_centrality(G, k=min(80, G.number_of_nodes()), seed=42) if G.number_of_nodes() > 5 else {}
+
+    # 4) communautés (Louvain)
+    communities = {}
+    if community_louvain is not None and G.number_of_nodes() > 3:
+        communities = community_louvain.best_partition(G, random_state=42)
+
+    # 5) helper top-k
+    def top_k(d, k=10):
+        items = sorted(d.items(), key=lambda x: x[1], reverse=True)[:k]
+        out = []
+        for node_id, score in items:
+            out.append({"id": node_id, "label": G.nodes[node_id].get("label", node_id), "score": float(score)})
+        return out
+
+    # 6) stats simples
+    comps = nx.number_connected_components(G)
+    density = nx.density(G)
+
+    return {
+        "seed_uri": g.seed_uri,
+        "depth": g.depth,
+        "n_nodes": G.number_of_nodes(),
+        "n_edges": G.number_of_edges(),
+        "stats": {"density": float(density), "components": int(comps)},
+        "top_degree": top_k(degree, 10),
+        "top_pagerank": top_k(pagerank, 10) if pagerank else [],
+        "top_betweenness": top_k(betweenness, 10) if betweenness else [],
+        "communities": communities,
+    }

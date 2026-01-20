@@ -61,6 +61,29 @@ def top_competitions(lang: str = Query("fr")):
     data = dbpedia.get_top_competitions(lang=lang)
     return {"lang": lang, "count": len(data), "results": data}
 
+@router.get("/analytics/club-degree")
+def club_degree(lang: str = Query("fr"), limit: int = Query(10, ge=1, le=50)):
+    lang = _normalize_lang(lang)
+    data = dbpedia.analytics_club_degree(lang=lang, limit=limit)
+    return {"lang": lang, "count": len(data), "results": data}
+
+
+@router.get("/analytics/player-mobility")
+def player_mobility(
+    lang: str = Query("fr"),
+    limit: int = Query(10, ge=1, le=50),
+    min_clubs: int = Query(2, ge=2, le=10),
+):
+    lang = _normalize_lang(lang)
+    data = dbpedia.analytics_player_mobility(lang=lang, limit=limit, min_clubs=min_clubs)
+    return {"lang": lang, "count": len(data), "results": data}
+
+
+@router.get("/analytics/players-clubs-graph")
+def players_clubs_graph(lang: str = Query("fr"), limit_edges: int = Query(500, ge=50, le=2000)):
+    lang = _normalize_lang(lang)
+    g = dbpedia.analytics_players_clubs_edges(lang=lang, limit_edges=limit_edges)
+    return {"lang": lang, **g}
 
 # ---------------------------
 # (Optionnel) endpoint agrégé pour page d'accueil

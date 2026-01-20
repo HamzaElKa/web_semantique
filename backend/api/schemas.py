@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from pydantic import BaseModel
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
@@ -77,3 +77,15 @@ class AskResponse(BaseModel):
     answer: str
 
     model_config = {"extra": "forbid"}
+
+
+
+class ExplainGraphRequest(BaseModel):
+    seed_uri: str
+    metrics: Dict[str, Any]              # la réponse de /graph/metrics
+    example_edges: Optional[List[Dict[str, str]]] = None  # optionnel
+    lang: str = "fr"
+
+class ExplainGraphResponse(BaseModel):
+    explanation: str
+    provider: str

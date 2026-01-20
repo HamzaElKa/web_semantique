@@ -23,6 +23,8 @@ class Settings:
     # Endpoints
     DBPEDIA_ENDPOINT: str = os.getenv("DBPEDIA_ENDPOINT", "https://dbpedia.org/sparql").strip()
     WIKIDATA_ENDPOINT: str = os.getenv("WIKIDATA_ENDPOINT", "https://query.wikidata.org/sparql").strip()
+    HAL_ENDPOINT: str = os.getenv("HAL_ENDPOINT", "https://sparql.archives-ouvertes.fr/sparql").strip()
+
 
     # Default choice
     DEFAULT_ENDPOINT: str = os.getenv("DEFAULT_ENDPOINT", "dbpedia").strip().lower()  # "dbpedia" or "wikidata"
