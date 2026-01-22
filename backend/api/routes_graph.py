@@ -3,19 +3,20 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Query, HTTPException
 
-from api.schemas import GraphResponse, ApiMeta, EndpointName
+from api.schemas import GraphResponse, ApiMeta
 from api.config import settings
 from api.deps import get_sparql_client
 from services.sparql_client import SparqlClient
 from services.normalize import sparql_json_to_rows
 import networkx as nx
 
-
 router = APIRouter(prefix="/graph", tags=["graph"])
+
 try:
     import community as community_louvain  # python-louvain
 except Exception:
     community_louvain = None
+
 
 def _validate_uri(u: str) -> str:
     u = (u or "").strip()
@@ -35,16 +36,15 @@ def _add_node(nodes_map: Dict[str, Dict[str, Any]], uri: str, label: Optional[st
 async def graph(
     seed: str = Query(..., description="Seed entity URI (http(s))"),
     depth: int = Query(1, ge=1, le=2, description="1 or 2 hops (2 hops may be heavier)"),
-    endpoint: EndpointName = Query(settings.DEFAULT_ENDPOINT),
     limit: int = Query(80, ge=1, le=settings.MAX_LIMIT),
     sparql: SparqlClient = Depends(get_sparql_client),
     mode: str = Query("generic", description="generic | foot"),
-
 ):
     seed_uri = _validate_uri(seed)
+
     # Foot-only filter (DBpedia predicates only)
     foot_filter = ""
-    if mode.lower() == "foot" and endpoint == "dbpedia":
+    if mode.lower() == "foot":
         foot_filter = """
     FILTER (?p IN (
         <http://dbpedia.org/ontology/team>,
@@ -59,7 +59,6 @@ async def graph(
         <http://dbpedia.org/ontology/birthPlace>
     ))
     """.rstrip()
-
 
     # 1-hop query
     query_1 = f"""
@@ -87,9 +86,7 @@ GROUP BY ?s ?p ?o
 LIMIT {limit}
 """.strip()
 
-
-
-    data1 = await sparql.query(query=query_1, endpoint=endpoint, limit=limit, use_cache=True)
+    data1 = await sparql.query(query=query_1, endpoint="dbpedia", limit=limit, use_cache=True)
     rows1 = sparql_json_to_rows(data1)
 
     nodes_map: Dict[str, Dict[str, Any]] = {}
@@ -116,8 +113,6 @@ LIMIT {limit}
 
     # Optional 2-hop expansion (lightweight): expand a small subset of targets
     if depth == 2 and one_hop_targets:
-        # Keep only a small number of targets to avoid exploding requests
-        # (and keep within demo constraints)
         max_targets = 15
         targets = one_hop_targets[:max_targets]
         limit2 = min(200, settings.MAX_LIMIT)
@@ -148,11 +143,7 @@ GROUP BY ?s ?p ?o
 LIMIT {limit2}
 """.strip()
 
-
-
-        # Use a smaller limit for 2-hop to avoid huge payload
-        
-        data2 = await sparql.query(query=query_2, endpoint=endpoint, limit=limit2, use_cache=True)
+        data2 = await sparql.query(query=query_2, endpoint="dbpedia", limit=limit2, use_cache=True)
         rows2 = sparql_json_to_rows(data2)
 
         for r in rows2:
@@ -174,7 +165,7 @@ LIMIT {limit2}
         edges = edges[:2000]
 
     return GraphResponse(
-        meta=ApiMeta(endpoint=endpoint, limit=limit, cached=False),
+        meta=ApiMeta(endpoint="dbpedia", limit=limit, cached=False),
         seed_uri=seed_uri,
         depth=depth,
         nodes=list(nodes_map.values()),
@@ -182,22 +173,20 @@ LIMIT {limit2}
     )
 
 
-
 @router.get("/metrics")
 async def graph_metrics(
     seed: str = Query(...),
     depth: int = Query(1, ge=1, le=2),
-    endpoint: EndpointName = Query(settings.DEFAULT_ENDPOINT),
     limit: int = Query(80, ge=1, le=settings.MAX_LIMIT),
     sparql: SparqlClient = Depends(get_sparql_client),
 ):
-    # 1) réutiliser ton graph existant en mode foot
-    g = await graph(seed=seed, depth=depth, endpoint=endpoint, limit=limit, sparql=sparql, mode="foot")
+    # Reuse graph existing endpoint (DBpedia-only) in "foot" mode
+    g = await graph(seed=seed, depth=depth, limit=limit, sparql=sparql, mode="foot")
 
     nodes = g.nodes
     edges = g.edges
 
-    # 2) construire un graphe NetworkX (non orienté pour centralités de structure)
+    # Build NetworkX graph (undirected for structural centralities)
     G = nx.Graph()
     for n in nodes:
         G.add_node(n["id"], label=n.get("label") or n["id"])
@@ -207,18 +196,16 @@ async def graph_metrics(
     if G.number_of_nodes() == 0:
         return {"seed_uri": seed, "n_nodes": 0, "n_edges": 0}
 
-    # 3) métriques
     degree = dict(G.degree())
-    
     pagerank = nx.pagerank(G, alpha=0.85) if G.number_of_nodes() <= 500 else {}
-    betweenness = nx.betweenness_centrality(G, k=min(80, G.number_of_nodes()), seed=42) if G.number_of_nodes() > 5 else {}
+    betweenness = (
+        nx.betweenness_centrality(G, k=min(80, G.number_of_nodes()), seed=42) if G.number_of_nodes() > 5 else {}
+    )
 
-    # 4) communautés (Louvain)
     communities = {}
     if community_louvain is not None and G.number_of_nodes() > 3:
         communities = community_louvain.best_partition(G, random_state=42)
 
-    # 5) helper top-k
     def top_k(d, k=10):
         items = sorted(d.items(), key=lambda x: x[1], reverse=True)[:k]
         out = []
@@ -226,7 +213,6 @@ async def graph_metrics(
             out.append({"id": node_id, "label": G.nodes[node_id].get("label", node_id), "score": float(score)})
         return out
 
-    # 6) stats simples
     comps = nx.number_connected_components(G)
     density = nx.density(G)
 

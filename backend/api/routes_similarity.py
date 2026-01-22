@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import Literal
 from fastapi import APIRouter, Query, HTTPException
 
-from api.schemas import SimilarityResponse, ApiMeta, EndpointName
-from api.config import settings
+from api.schemas import SimilarityResponse, ApiMeta
 
 router = APIRouter(prefix="/similarity", tags=["similarity"])
 
@@ -22,15 +21,13 @@ def _validate_uri(u: str) -> str:
 async def similarity(
     entity_type: EntityType = Query("player"),
     id: str = Query(..., description="Entity URI (http(s))"),
-    endpoint: EndpointName = Query(settings.DEFAULT_ENDPOINT),
     limit: int = Query(20, ge=1, le=100),
 ):
     _validate_uri(id)
 
-    # Placeholder: colleague module (analysis_similarity) will fill this later.
-    # Keeping stable API contract for the frontend.
+    # Placeholder: similarity module will fill this later.
     return SimilarityResponse(
-        meta=ApiMeta(endpoint=endpoint, limit=limit, cached=False),
+        meta=ApiMeta(endpoint="dbpedia", limit=limit, cached=False),
         entity_type=entity_type,
         uri=id,
         similar=[],

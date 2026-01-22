@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
     // On charge les données d'exemple au lancement de la page
     loadFeaturedData();
@@ -259,7 +258,7 @@ const API_BASE = "http://127.0.0.1:8000";
 async function runSearch() {
   const input = document.getElementById('searchQuery');
   const query = (input?.value || "").trim();
-    const type = document.getElementById("searchType")?.value || ""; // player/club/competition/""
+  const type = document.getElementById("searchType")?.value || ""; // player/club/stadium/competition/""
   const resultsDiv = document.getElementById('results');
   const infoDiv = document.getElementById('searchInfo');
   const countSpan = document.getElementById('resultCount');
@@ -282,16 +281,20 @@ async function runSearch() {
   }
 
   try {
-    const url = `${API_BASE}/search?q=${encodeURIComponent(query)}&entity_type=${encodeURIComponent(type)}&limit=20`;
+    const lang = "fr";
+    const kind = type || "player";
+    const url = `${API_BASE}/dbpedia-foot/search?q=${encodeURIComponent(query)}&kind=${encodeURIComponent(kind)}&lang=${encodeURIComponent(lang)}&limit=20`;
+
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
-    const data = await resp.json(); // attendu: {results:[...], ...} ou [...]
-    const items = data.results || data || [];
+    // attendu: { lang, kind, count, results:[...] }
+    const data = await resp.json();
+    const items = data.results || [];
 
     if (infoDiv) infoDiv.style.display = "block";
     if (countSpan) countSpan.textContent = String(items.length);
-    if (endpointSpan) endpointSpan.textContent = "DBpedia";
+    if (endpointSpan) endpointSpan.textContent = "DBpedia (dbpedia-foot)";
 
     renderSearchResults(items);
   } catch (err) {
@@ -314,18 +317,21 @@ function renderSearchResults(items) {
 
   resultsDiv.innerHTML = "";
   items.forEach(item => {
-    const name = item.nom || item.label || item.name || "Sans nom";
+    // dbpedia-foot/search returns: { uri, label, comment, img, kind }
+    const name = item.label || item.nom || item.name || "Sans nom";
     const uri = item.uri || item.id || item.resource || "";
-    const image = item.image || "";
+    const image = item.img || item.image || "";
+    const comment = item.comment || item.description || "";
 
     const card = document.createElement('div');
     card.className = "card result-card p-3";
 
     card.innerHTML = `
       <div class="d-flex align-items-center gap-3">
-        ${image ? `<img src="${image}" class="rounded-circle object-fit-cover border" width="52" height="52" alt="${name}">` : ""}
+        ${image ? `<img src="${image}" class="rounded-circle object-fit-cover border" width="52" height="52" alt="${name}" onerror="this.style.display='none'">` : ""}
         <div class="flex-grow-1 overflow-hidden">
           <div class="fw-semibold text-truncate">${name}</div>
+          ${comment ? `<div class="small text-muted text-truncate">${comment}</div>` : ""}
           ${uri ? `<div class="small text-muted text-truncate">${uri}</div>` : ""}
         </div>
         ${uri ? `<a class="btn btn-outline-primary btn-sm" href="#" data-uri="${uri}">Détails</a>` : ""}

@@ -20,16 +20,11 @@ def _get_float(name: str, default: float) -> float:
 
 @dataclass(frozen=True)
 class Settings:
-    # Endpoints
+    # DBpedia-only endpoint
     DBPEDIA_ENDPOINT: str = os.getenv("DBPEDIA_ENDPOINT", "https://dbpedia.org/sparql").strip()
-    WIKIDATA_ENDPOINT: str = os.getenv("WIKIDATA_ENDPOINT", "https://query.wikidata.org/sparql").strip()
-    HAL_ENDPOINT: str = os.getenv("HAL_ENDPOINT", "https://sparql.archives-ouvertes.fr/sparql").strip()
 
     # IA Générative (OpenAI / Mistral / Ollama)
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "ollama").strip()
-
-    # Default choice
-    DEFAULT_ENDPOINT: str = os.getenv("DEFAULT_ENDPOINT", "dbpedia").strip().lower()  # "dbpedia" or "wikidata"
 
     # Guard rails
     HTTP_TIMEOUT_S: float = _get_float("HTTP_TIMEOUT_S", 15.0)
@@ -46,11 +41,6 @@ class Settings:
 
 
 def _normalize_settings(s: Settings) -> Settings:
-    # sanitize default endpoint
-    endpoint = s.DEFAULT_ENDPOINT
-    if endpoint not in ("dbpedia", "wikidata"):
-        endpoint = "dbpedia"
-
     # sanitize limits
     max_limit = max(1, s.MAX_LIMIT)
     default_limit = min(max(1, s.DEFAULT_LIMIT), max_limit)
@@ -63,10 +53,7 @@ def _normalize_settings(s: Settings) -> Settings:
     # rebuild frozen dataclass with corrected values
     return Settings(
         DBPEDIA_ENDPOINT=s.DBPEDIA_ENDPOINT,
-        WIKIDATA_ENDPOINT=s.WIKIDATA_ENDPOINT,
-        HAL_ENDPOINT=s.HAL_ENDPOINT,
         OPENAI_API_KEY=s.OPENAI_API_KEY,
-        DEFAULT_ENDPOINT=endpoint,
         HTTP_TIMEOUT_S=timeout,
         MAX_LIMIT=max_limit,
         DEFAULT_LIMIT=default_limit,
