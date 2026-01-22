@@ -25,6 +25,8 @@ class Settings:
     WIKIDATA_ENDPOINT: str = os.getenv("WIKIDATA_ENDPOINT", "https://query.wikidata.org/sparql").strip()
     HAL_ENDPOINT: str = os.getenv("HAL_ENDPOINT", "https://sparql.archives-ouvertes.fr/sparql").strip()
 
+    # IA Générative (OpenAI / Mistral / Ollama)
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "ollama").strip()
 
     # Default choice
     DEFAULT_ENDPOINT: str = os.getenv("DEFAULT_ENDPOINT", "dbpedia").strip().lower()  # "dbpedia" or "wikidata"
@@ -62,6 +64,8 @@ def _normalize_settings(s: Settings) -> Settings:
     return Settings(
         DBPEDIA_ENDPOINT=s.DBPEDIA_ENDPOINT,
         WIKIDATA_ENDPOINT=s.WIKIDATA_ENDPOINT,
+        HAL_ENDPOINT=s.HAL_ENDPOINT,
+        OPENAI_API_KEY=s.OPENAI_API_KEY,
         DEFAULT_ENDPOINT=endpoint,
         HTTP_TIMEOUT_S=timeout,
         MAX_LIMIT=max_limit,
