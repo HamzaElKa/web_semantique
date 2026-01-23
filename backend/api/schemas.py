@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional
+
 from pydantic import BaseModel, Field
 
-EndpointName = Literal["dbpedia", "wikidata"]
-EntityType = Literal["player", "club", "stadium"]
+# DBpedia-only project
+EndpointName = Literal["dbpedia"]
+EntityType = Literal["player", "club", "competition", "stadium"]
 
 
 class ApiMeta(BaseModel):
@@ -64,6 +66,7 @@ class SimilarityResponse(BaseModel):
 
 class AskRequest(BaseModel):
     question: str
+    # kept for backward-compat with the frontend, but only "dbpedia" is allowed now
     endpoint: Optional[EndpointName] = None
 
     model_config = {"extra": "forbid"}
@@ -75,5 +78,21 @@ class AskResponse(BaseModel):
     generated_sparql: str
     rows: List[Dict[str, Any]]
     answer: str
+
+    model_config = {"extra": "forbid"}
+
+
+class ExplainGraphRequest(BaseModel):
+    seed_uri: str
+    metrics: Dict[str, Any]  # response from /graph/metrics
+    example_edges: Optional[List[Dict[str, str]]] = None
+    lang: str = "fr"
+
+    model_config = {"extra": "forbid"}
+
+
+class ExplainGraphResponse(BaseModel):
+    explanation: str
+    provider: str
 
     model_config = {"extra": "forbid"}

@@ -2,35 +2,28 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes_dbpedia_foot import router as dbpedia_foot_router
-
 
 from api.config import settings
-from api.routes_search import router as search_router
+
+# Routers
+from api.routes_dbpedia_foot import router as dbpedia_foot_router
 from api.routes_entity import router as entity_router
 from api.routes_graph import router as graph_router
 from api.routes_similarity import router as similarity_router
 from api.routes_ask import router as ask_router
-from api.routes_dbpedia import router as dbpedia_router
+from api.routes_explain import router as explain_router
 
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="4IF-WS Foot Explorer API",
+        title="4IF-WS Foot Explorer API (DBpedia-only)",
         version="1.0.0",
-        description=(
-            "API for exploring football entities with SPARQL (DBpedia/Wikidata), "
-            "graph analysis and LLM-assisted queries."
-        ),
+        description="API for exploring football entities using DBpedia SPARQL + graph endpoints.",
     )
 
-    # CORS: allow frontend to call the API (HTML/JS on another port).
-    # You can set CORS_ORIGINS="http://localhost:5500,http://127.0.0.1:5500" in .env
-    origins = getattr(settings, "CORS_ORIGINS", None)
-    if origins:
-        allow_origins = [o.strip() for o in origins.split(",") if o.strip()]
-    else:
-        allow_origins = ["*"]
+    # CORS
+    origins = getattr(settings, "CORS_ORIGINS", "")
+    allow_origins = [o.strip() for o in origins.split(",") if o.strip()] or ["*"]
 
     app.add_middleware(
         CORSMiddleware,
@@ -40,15 +33,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Routers
-    app.include_router(search_router)
+    # ✅ Routers (DBpedia-foot + le reste)
+    app.include_router(dbpedia_foot_router)
     app.include_router(entity_router)
     app.include_router(graph_router)
     app.include_router(similarity_router)
     app.include_router(ask_router)
-    app.include_router(dbpedia_router)
-    app.include_router(dbpedia_foot_router)
-
+    app.include_router(explain_router)
 
     @app.get("/", tags=["meta"])
     async def root():
@@ -59,13 +50,13 @@ def create_app() -> FastAPI:
             "openapi": "/openapi.json",
             "health": "/health",
             "routes": {
-                "search": "/search",
-                "entity": "/entity",
-                "graph": "/graph",
-                "similarity": "/similarity",
-                "ask": "/ask",
-                "dbpedia_stadiums": "/dbpedia/stadiums?city=London&lang=fr&limit=10",
-                "dbpedia_psg": "/dbpedia/psg?lang=fr",
+                "dbpedia_home": "/dbpedia-foot/home?lang=fr",
+                "dbpedia_players": "/dbpedia-foot/players?lang=fr",
+                "dbpedia_clubs": "/dbpedia-foot/clubs?lang=fr",
+                "dbpedia_competitions": "/dbpedia-foot/competitions?lang=fr",
+                "dbpedia_search": "/dbpedia-foot/search?q=messi&kind=player&lang=fr&limit=20",
+                "entity": "/entity?id=http://dbpedia.org/resource/Lionel_Messi&limit=30",
+                "graph": "/graph?seed=http://dbpedia.org/resource/Lionel_Messi&limit=50",
             },
         }
 
@@ -74,3 +65,6 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     return app
+
+
+app = create_app()
