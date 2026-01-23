@@ -223,7 +223,7 @@ class DBpediaService:
 if __name__ == "__main__":
     service = DBpediaService()
     
-    print("\n--- CLUBS (Test Correctif) ---")
+    print("\n--- CLUBS ---")
     clubs = service.get_specific_clubs()
     for c in clubs:
         print(f" > {c['nom']} - {c['stade']}")
