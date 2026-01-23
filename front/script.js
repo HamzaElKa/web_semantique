@@ -334,19 +334,10 @@ function renderSearchResults(items) {
           ${comment ? `<div class="small text-muted text-truncate">${comment}</div>` : ""}
           ${uri ? `<div class="small text-muted text-truncate">${uri}</div>` : ""}
         </div>
-        ${uri ? `<a class="btn btn-outline-primary btn-sm" href="#" data-uri="${uri}">Détails</a>` : ""}
+        ${uri ? `<a class="btn btn-outline-primary btn-sm" href="detail.html?uri=${uri}">Détails</a>` : ""}
       </div>
     `;
 
-    // (optionnel) clic "Détails" -> remplir la barre / ou appeler /entity
-    const btn = card.querySelector('a[data-uri]');
-    if (btn) {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const input = document.getElementById('searchQuery');
-        if (input) input.value = name;
-      });
-    }
 
     resultsDiv.appendChild(card);
   });

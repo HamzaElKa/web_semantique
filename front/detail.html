@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Détails - Foot Explorer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-primary mb-4">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><i class="bi bi-globe"></i> Foot Explorer</a>
+    </div>
+  </nav>
+
+  <div class="container pb-5">
+    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left"></i> Retour
+    </a>
+
+    <div id="loading" class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+      <div class="mt-2 text-muted">Chargement depuis DBpedia...</div>
+    </div>
+
+    <div id="entity-content" style="display: none;">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 d-flex flex-wrap gap-4 align-items-center">
+            <div class="flex-shrink-0 mx-auto mx-md-0">
+                <img id="entity-img" class="rounded shadow-sm" style="width:150px; height:150px; object-fit:cover; display:none;">
+                <div id="img-placeholder" class="rounded bg-light d-flex align-items-center justify-content-center" style="width:150px; height:150px;">
+                    <i class="bi bi-person fs-1 text-secondary"></i>
+                </div>
+            </div>
+            <div>
+                <h1 id="entity-label" class="display-6 fw-bold mb-1"></h1>
+                <div id="entity-uri" class="text-muted small text-break"></div>
+            </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white"><i class="bi bi-info-circle me-2"></i>Propriétés</div>
+                <div class="list-group list-group-flush" id="entity-properties"></div>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-msg" class="alert alert-danger mt-4" style="display:none;"></div>
+  </div>
+
+  <script src="detail.js"></script>
+</body>
+</html>
